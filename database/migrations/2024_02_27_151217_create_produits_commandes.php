@@ -13,13 +13,12 @@ return new class extends Migration
     {
         Schema::create('produits_commandes', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('commande_id');
-            $table->unsignedBigInteger('produits_id');
+            $table->unsignedBigInteger('order_id');
+            $table->unsignedBigInteger('product_id');
             $table->integer('quantite');
 
-            $table->foreign('commande_id')->references('id')->on('commandes')->onDelete('cascade');
-            $table->foreign('produits_id')->references('id')->on('produits')->onDelete('cascade');
-
+            $table->foreign('order_id')->references('id')->on('commandes')->onDelete('cascade');
+            $table->foreign('product_id')->references('id')->on('produits')->onDelete('cascade');
             $table->timestamps();
         });
     }

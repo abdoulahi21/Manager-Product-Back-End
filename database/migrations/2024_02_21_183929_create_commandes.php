@@ -13,8 +13,9 @@ return new class extends Migration
     {
         Schema::create('commandes', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('clients_id')->constrained('clients')->cascadeOnDelete();
-            $table->string('date');
+            $table->foreignId('client_id')->constrained('clients')->cascadeOnDelete();
+            $table->decimal('total_price', 8, 2);
+            $table->string('numeroCommande')->unique();
             $table->timestamps();
         });
     }

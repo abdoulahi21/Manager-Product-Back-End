@@ -8,18 +8,22 @@ use Illuminate\Database\Eloquent\Model;
 class ProduitCommande extends Model
 {
     use HasFactory;
+    protected $table='produits_commandes';
     protected $fillable=[
-        'commande_id',
-        'produits_id',
+        'order_id',
+        'product_id',
         'quantite',
+        'price',
     ];
 
-    public function produits(){
-        return $this->belongsTo(Produit::class);
-    }
-    public function commande(){
+    public function order()
+    {
         return $this->belongsTo(Commande::class);
     }
 
+    public function product()
+    {
+        return $this->belongsTo(Produit::class);
+    }
 
 }

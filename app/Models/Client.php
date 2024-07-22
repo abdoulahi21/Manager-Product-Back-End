@@ -12,11 +12,10 @@ class Client extends Model
 {
     use HasFactory;
     protected $fillable=[
-        'nom',
-        'prenom',
+        'nomcomplet',
         'adresse',
         'numeroTelephone',
-        'sexe',
+        'email',
         ];
 
     public function commandes()

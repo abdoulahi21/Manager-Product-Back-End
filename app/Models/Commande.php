@@ -9,13 +9,15 @@ class Commande extends Model
 {
     use HasFactory;
     protected $fillable=[
-        'clients_id',
-        'date',
+        'client_id',
+        'numerocommande',
+        'total_price',
     ];
-    public function client()
+    public function items()
     {
-        return $this->belongsTo(Client::class, 'clients_id');
+        return $this->hasMany(ProduitCommande::class);
     }
+
 
     public function produits()
     {

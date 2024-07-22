@@ -1,0 +1,182 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\CartItem;
+use App\Models\Client;
+use App\Models\Commande;
+use App\Models\Produit;
+use App\Models\ProduitCommande;
+use Illuminate\Http\Request;
+
+class CommandesController extends Controller
+{
+    /**
+     * Display a listing of the resource.
+     */
+    public function index()
+    {
+        //
+         $clients=Client::all();
+         $produits=Produit::all();
+         $commandes = Commande::latest()->paginate(3);
+        return view('commande.index',[
+         'commandes' => $commandes,
+            'clients'=>$clients,
+         'produits'=>$produits,]);
+    }
+    public function store(Request $request)
+
+    {
+        $request->validate([
+            'nomcomplet' => 'required',
+            'email' => 'required',
+            'numeroTelephone' => 'required',
+            'adresse' => 'required',
+            'total_price' => 'required',
+        ]);
+        $client=new Client();
+        $client->nomcomplet=$request->input('nomcomplet');
+        $client->email=$request->input('email');
+        $client->numeroTelephone=$request->input('numeroTelephone');
+        $client->adresse=$request->input('adresse');
+        $client->save();
+
+        // Partie 1 : Préfixe fixe pour les commandes
+        $prefixe = "CMD";
+
+    // Partie 2 : Année actuelle
+            $annee = date("Y");
+
+    // Partie 3 : Mois actuel
+            $mois = date("m");
+
+    // Partie 4 : Numéro de commande aléatoire
+            $num_commande = rand(1000, 9999);
+
+// Concaténation des parties pour former le matricule de commande
+        $matricule_commande = $prefixe . "-" . $annee . $mois . "-" . $num_commande;
+        $commande = new Commande();
+        $commande->client_id = $client->id;
+        $commande->numerocommande = $matricule_commande;
+        $commande->total_price = $request->input('total_price');
+        $commande->save();
+
+        $cartitem=CartItem::with('product')->get();
+        foreach ($cartitem as $item) {
+            $produitCommande = new ProduitCommande();
+            $produitCommande->order_id = $commande->id;
+            $produitCommande->product_id = $item->product->id;
+            $produitCommande->quantite = $item->quantity;
+            $produitCommande->save();
+
+            $stock=$item->product;
+            $newstock=$stock->quantite-$item->quantity;
+            $stock->update(['quantite'=>$newstock]);
+            $item->delete();
+        }
+
+        return response()->json([
+            'message' => 'Commande créée avec succès',
+            'code' => 200,
+        ]);
+
+    }
+    /**
+     * Show the form for creating a new resource.
+     */
+    public function create()
+    {
+        //
+    }
+
+    /**
+     * Store a newly created resource in storage.
+     */
+
+   /* public function downloadPDF(string $id)
+    {
+        $commande= Commande::find($id);
+
+        $pdf = PDF::loadView('commande.viewPdf', array('commande' =>  $commande))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->download('commandes-details.pdf');
+    }
+    public function viewPDF(string $id)
+    {
+        $commande = Commande::find($id);
+
+        $pdf = PDF::loadView('commande.viewPdf', array('commande' =>  $commande))
+            ->setPaper('a4', 'portrait');
+
+        return $pdf->stream();
+
+    }*/
+
+
+
+    /**
+     * Display the specified resource.
+     */
+    public function show(Commande $commande)
+    {
+        //
+        return view('commande.viewPdf', [
+            'commande' => $commande
+        ]);
+    }
+
+    /**
+     * Show the form for editing the specified resource.
+     */
+    public function edit(string $id)
+    {
+        //
+    }
+
+    /**
+     * Update the specified resource in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        $request->validate([
+            'client_id' => 'required|exists:clients,id',
+            'date' => 'required',
+            'quantites' => 'required|array',
+            'quantites.*' => 'required|integer|min:1',
+        ]);
+        // Récupérer la commande à modifier
+        $commande = Commande::findOrFail($id);
+
+        // Mettre à jour les données de la commande
+        $commande->client_id = $request->input('client_id');
+        $commande->date = $request->input('date');
+        $commande->save();
+
+        // Mettre à jour les quantités des produits dans la commande
+        foreach ($request->input('quantites') as $produitId => $quantite) {
+            $commande->produits()->updateExistingPivot($produitId, ['quantite' => $quantite]);
+        }
+
+        return response()->json([
+            'message' => 'Commande modifiée avec succès',
+            'code' => 200,
+        ]);
+}
+
+    /**
+     * Remove the specified resource from storage.
+     */
+    public function destroy(string $id)
+    {
+        //
+        $commme=Commande::find($id);
+        $commme->delete();
+        return response()->json([
+            'message' => 'Commande supprimée avec succès',
+            'code' => 200,
+        ]);
+    }
+
+}
