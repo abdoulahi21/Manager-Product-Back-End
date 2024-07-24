@@ -47,7 +47,7 @@ class ProduitsController extends Controller
             'description' => 'required',
             'prix' => 'required',
             'quantite' => 'required',
-            'photo' => 'required|image|mimes:jpeg,png,jpg,gif,svg|max:2048',
+            'photo' => 'required|image|mimes:jpeg,png,webp,jpg,gif,svg|max:2048',
             'categories_id'=>'required'
         ]);
 

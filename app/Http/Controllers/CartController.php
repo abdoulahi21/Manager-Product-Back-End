@@ -34,15 +34,11 @@ class CartController extends Controller
         return response()->json($cart);
     }
 
-    public function destroy($productId)
+    public function destroy(String $id)
     {
-        $cart = session()->get('cart', []);
-        if (isset($cart[$productId])) {
-            unset($cart[$productId]);
-            session()->put('cart', $cart);
-        }
-
-        return response()->json($cart);
+        $cart = CartItem::find($id);
+       $c= $cart->delete();
+        return response()->json($c);
     }
 
     }

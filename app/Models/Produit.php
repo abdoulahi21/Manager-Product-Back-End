@@ -17,14 +17,9 @@ class Produit extends Model
         'categories_id'
     ];
 
-    public function commandes()
-    {
-        return $this->belongsToMany(Commande::class)->withPivot('quantite');
-    }
-
-    public function categorie()
-    {
-        return $this->belongsTo(Categories::class, 'categories_id');
-    }
+     public function categories()
+     {
+          return $this->belongsTo(Categories::class);
+     }
 
 }

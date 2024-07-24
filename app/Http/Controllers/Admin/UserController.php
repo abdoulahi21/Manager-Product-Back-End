@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Client;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -73,7 +74,11 @@ class UserController extends Controller
             'user' => $user
         ]);
     }
-
+     public function clients()
+     {
+         $clients=Client::all();
+         return response()->json($clients);
+     }
     /**
      * Show the form for editing the specified resource.
      */

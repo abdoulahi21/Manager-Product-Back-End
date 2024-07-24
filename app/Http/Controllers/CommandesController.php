@@ -7,7 +7,11 @@ use App\Models\Client;
 use App\Models\Commande;
 use App\Models\Produit;
 use App\Models\ProduitCommande;
+use App\Models\User;
+use App\Notifications\CommandeNotification;
+use App\Notifications\VendeurCommandeNotification;
 use Illuminate\Http\Request;
+use PhpParser\Node\Scalar\String_;
 
 class CommandesController extends Controller
 {
@@ -17,13 +21,8 @@ class CommandesController extends Controller
     public function index()
     {
         //
-         $clients=Client::all();
-         $produits=Produit::all();
-         $commandes = Commande::latest()->paginate(3);
-        return view('commande.index',[
-         'commandes' => $commandes,
-            'clients'=>$clients,
-         'produits'=>$produits,]);
+        $commandes = Commande::with('client')->get();
+        return response()->json($commandes);
     }
     public function store(Request $request)
 
@@ -46,13 +45,13 @@ class CommandesController extends Controller
         $prefixe = "CMD";
 
     // Partie 2 : Année actuelle
-            $annee = date("Y");
+        $annee = date("Y");
 
     // Partie 3 : Mois actuel
-            $mois = date("m");
+        $mois = date("m");
 
     // Partie 4 : Numéro de commande aléatoire
-            $num_commande = rand(1000, 9999);
+        $num_commande = rand(1000, 9999);
 
 // Concaténation des parties pour former le matricule de commande
         $matricule_commande = $prefixe . "-" . $annee . $mois . "-" . $num_commande;
@@ -60,6 +59,7 @@ class CommandesController extends Controller
         $commande->client_id = $client->id;
         $commande->numerocommande = $matricule_commande;
         $commande->total_price = $request->input('total_price');
+        $commande->status = 'Non expédiée';
         $commande->save();
 
         $cartitem=CartItem::with('product')->get();
@@ -68,6 +68,7 @@ class CommandesController extends Controller
             $produitCommande->order_id = $commande->id;
             $produitCommande->product_id = $item->product->id;
             $produitCommande->quantite = $item->quantity;
+
             $produitCommande->save();
 
             $stock=$item->product;
@@ -75,7 +76,11 @@ class CommandesController extends Controller
             $stock->update(['quantite'=>$newstock]);
             $item->delete();
         }
-
+        $client->notify(new CommandeNotification($commande));
+        $user = User::first(); // Ou utilisez une autre logique pour sélectionner le vendeur
+        if ($user) {
+            $user->notify(new VendeurCommandeNotification($commande));
+        }
         return response()->json([
             'message' => 'Commande créée avec succès',
             'code' => 200,
@@ -119,12 +124,14 @@ class CommandesController extends Controller
     /**
      * Display the specified resource.
      */
-    public function show(Commande $commande)
+    public function show(String $id)
     {
         //
-        return view('commande.viewPdf', [
-            'commande' => $commande
-        ]);
+        $commande=Commande::with('client')->find($id);
+        $commande->load('items');
+        $commande->load('items.product');
+        return response()->json($commande);
+
     }
 
     /**
@@ -134,7 +141,15 @@ class CommandesController extends Controller
     {
         //
     }
-
+    public function validercommande(string $id)
+    {
+        $commande=Commande::find($id);
+        $commande->update(['status'=>'Expédiée']);
+        return response()->json([
+            'message' => 'Commande validée avec succès',
+            'code' => 200,
+        ]);
+    }
     /**
      * Update the specified resource in storage.
      */

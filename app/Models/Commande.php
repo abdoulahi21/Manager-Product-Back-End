@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Commande extends Model
 {
@@ -12,28 +13,17 @@ class Commande extends Model
         'client_id',
         'numerocommande',
         'total_price',
+        'status',
+
     ];
-    public function items()
+    public function items():HasMany
     {
-        return $this->hasMany(ProduitCommande::class);
+        return $this->hasMany(ProduitCommande::class,'order_id');
+    }
+    public function client()
+    {
+        return $this->belongsTo(Client::class,'client_id');
     }
 
-
-    public function produits()
-    {
-        return $this->belongsToMany(Produit::class,'produits_commandes',
-            'commande_id','produits_id')->withPivot('quantite');
-    }
-
-    public function calculerMontantTotal()
-    {
-        $montantTotal = 0;
-
-        foreach ($this->produits as $produit) {
-            $montantTotal += $produit->prix * $produit->pivot->quantite;
-        }
-
-        return $montantTotal;
-    }
 
 }
