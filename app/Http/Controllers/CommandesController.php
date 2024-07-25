@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Controllers\Admin\UserController;
 use App\Models\CartItem;
 use App\Models\Client;
 use App\Models\Commande;
@@ -20,9 +21,31 @@ class CommandesController extends Controller
      */
     public function index()
     {
-        //
         $commandes = Commande::with('client')->get();
         return response()->json($commandes);
+    }
+    public function getTopSellingProducts()
+    {
+        try {
+            // Assuming 'orders' table contains 'product_id' and 'quantity' columns
+            $products = DB::table('products')
+                ->join('order_items', 'products.id', '=', 'order_items.product_id')
+                ->select('products.nom', DB::raw('SUM(order_items.quantity) as quantite_vendue'))
+                ->groupBy('products.id')
+                ->orderBy('quantite_vendue', 'desc')
+                ->take(10) // Get top 10 selling products
+                ->get();
+
+            return response()->json([
+                'success' => true,
+                'products' => $products
+            ], 200);
+        } catch (\Exception $e) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Erreur lors de la récupération des produits les plus vendus: ' . $e->getMessage()
+            ], 500);
+        }
     }
     public function store(Request $request)
 
@@ -77,10 +100,6 @@ class CommandesController extends Controller
             $item->delete();
         }
         $client->notify(new CommandeNotification($commande));
-        $user = User::first(); // Ou utilisez une autre logique pour sélectionner le vendeur
-        if ($user) {
-            $user->notify(new VendeurCommandeNotification($commande));
-        }
         return response()->json([
             'message' => 'Commande créée avec succès',
             'code' => 200,

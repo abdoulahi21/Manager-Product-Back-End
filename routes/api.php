@@ -18,11 +18,12 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+Route::get('/top-selling-products', [\App\Http\Controllers\CommandesController::class, 'getTopSellingProducts']);
 Route::get('/cart/{id}', [CartController::class, 'addToCart']);
 Route::get('/cart', [CartController::class, 'getCart']);
 Route::put('/cart/{productId}', [CartController::class, 'updateCartItem']);
 Route::delete('/cart/delete/{productId}', [CartController::class, 'destroy']);
-
+Route::apiResource('user', \App\Http\Controllers\Admin\UserController::class);
 
 //Route::post('/order', [\App\Http\Controllers\CommandesController::class, 'createOrder']);
 Route::apiResource('produit',\App\Http\Controllers\Admin\ProduitsController::class);

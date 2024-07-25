@@ -12,9 +12,9 @@ class VendeurCommandeNotification extends Notification
 {
     use Queueable;
 
-    protected $commande;
+    public Commande $commande;
 
-    public function __construct(Commande $commande)
+    public function __construct($commande)
     {
         $this->commande = $commande;
     }

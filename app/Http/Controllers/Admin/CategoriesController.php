@@ -15,7 +15,7 @@ class CategoriesController extends Controller
     {
         //
         try {
-            $categorie = Categories::all();
+            $categorie = Categories::with('produits')->get();
             return response()->json($categorie);
         }catch (\Exception $e) {
                 return response()->json([

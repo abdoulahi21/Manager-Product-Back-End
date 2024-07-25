@@ -42,6 +42,7 @@ class UserController extends Controller
             'name' => 'required',
             'email' => 'required|email|unique:users',
             'password' => 'required',
+            'phone'=>'required',
             'role'=>'required'
         ]);
         try {
@@ -49,7 +50,8 @@ class UserController extends Controller
             $user->name = $request->name;
             $user->email = $request->email;
             $user->password = Hash::make($request->password);
-            $user->role='Admin'; // Default role is 'User
+            $user->phone=$request->phone;
+            $user->role='client'; // Default role is 'User
             $user->save();
             return response()->json([$user,
                 'message' => 'User created successfully',
@@ -91,7 +93,8 @@ class UserController extends Controller
         $request->validate([
             'name' => 'required',
             'email' => 'required|email|unique:users,email,' . $user->id,
-            'role'=>'required'
+            'role'=>'required',
+            'phone'=>'required'
         ]);
 
         $user->update([

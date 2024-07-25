@@ -11,11 +11,11 @@ use Illuminate\Notifications\Notification;
 class CommandeNotification extends Notification
 {
     use Queueable;
-
+    public Commande $commande;
     /**
      * Create a new notification instance.
      */
-    public function __construct(Commande $commande)
+    public function __construct($commande)
     {
         $this->commande = $commande;
     }
@@ -36,11 +36,12 @@ class CommandeNotification extends Notification
     public function toMail(object $notifiable): MailMessage
     {
         return (new MailMessage)
-            ->line('Une nouvelle commande a été passée.')
+            ->line('Bonjour,chère client(e) ' . $this->commande->client->nomcomplet.'votre commande a été passée avec succès.
+            Vous recevrez un mail de confirmation dès que votre commande sera prête.Merci de votre confiance.')
             ->line('Numéro de commande : ' . $this->commande->numerocommande)
-            ->line('Total : ' . $this->commande->total_price)
+            ->line('Total : ' . $this->commande->total_price.' FCFA')
             ->action('Voir la commande', url('/commandes/' . $this->commande->id))
-            ->line('Merci d\'utiliser notre application !');;
+            ->line('Merci d\'utiliser notre application !');
     }
 
     /**
